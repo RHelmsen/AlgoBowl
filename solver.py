@@ -14,23 +14,31 @@ def setup(i):
         row = list(inFile.readline().strip())
         board.append(row)
     
-    return board
+    return board, rowNums, colNums
 
-def solve(i, board):
-    fileName = './all_outputs/outputs/output_group'+str(i)+'.txt'
-    outFile = open(fileName, 'w')
+def solve(board, rowNums, colNums):
     trees = []
     for i in range(len(board)):
         for j in range(len(board[i])):
             if board[i][j]=='T':
                 trees.append((i,j))
+    
+    for tree in range(len(trees)):
+        print()
 
-setup(974)
+def calcViolations(board, sol):
+    violations=0
+
+def output(i, v, t, sol):
+    fileName = './all_outputs/outputs/output_group'+str(i)+'.txt'
+    outFile = open(fileName, 'w')
 
 def main():
     inputNum=963
     while inputNum<=1024:
-        board=setup(inputNum)
-        solve(inputNum,board)
+        board, rowNums, colNums=setup(inputNum)
+        solution, numTents=solve(board, rowNums, colNums)
+        violations=calcViolations(numTents, solution, rowNums, colNums)
+        output(inputNum, violations, numTents, solution)
         inputNum+=1
 
