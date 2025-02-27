@@ -1,8 +1,6 @@
-import io, sys, networkx as nx
 
 def setup(inputNum):
-    #fileName = './all_inputs/inputs/input_group'+str(inputNum)+'.txt'
-    fileName='test_input.txt'
+    fileName = './all_inputs/inputs/input_group'+str(inputNum)+'.txt'
     inFile = open(fileName, 'r')
 
     board = []
@@ -46,22 +44,107 @@ def solve(board, rowNums, colNums):
                 temptents.append(tentloc)
                 tentscores.append(rowNums[tentloc[0]]+colNums[tentloc[1]])
         
-        optimal = tentscores.index(max(tentscores))
-        tent=temptents[optimal]
-        tents.append(tent)
-        solution[tent[0]][tent[1]]="X"
-        rowNums[tent[0]]-=1
-        colNums[tent[1]]-=1
+        if len(temptents)>0:
+            optimal = tentscores.index(max(tentscores))
+            tent=temptents[optimal]
+            tents.append(tent)
+            solution[tent[0]][tent[1]]="X"
+            rowNums[tent[0]]-=1
+            colNums[tent[1]]-=1
 
-    return solution, tents   
+    return solution, trees, tents, rowNums, colNums
 
-def calcViolations(solution, tents, rowNums, colNums):
+def calcViolations(solution, trees, tents, rowNums, colNums):
     violations=0
+    violations += sum(abs(row) for row in rowNums)+sum(abs(col) for col in colNums)
+    
+    for tent in tents:
+        if tent[2]=='U':
+            if (tent[0]-1,tent[1]) not in trees:
+                violations+=1
+            else:
+                trees.remove((tent[0]-1,tent[1]))
+        if tent[2]=='D':
+            if solution[tent[0]+1][tent[1]]!='T':
+                violations+=1
+            else:
+                trees.remove((tent[0]+1,tent[1]))
+        if tent[2]=='L':
+            if solution[tent[0]][tent[1]-1]!='T':
+                violations+=1
+            else:
+                trees.remove((tent[0],tent[1]-1))
+        if tent[2]=='R':
+            if solution[tent[0]][tent[1]+1]!='T':
+                violations+=1
+            else:
+                trees.remove((tent[0],tent[1]+1))
+        if tent[2]=='X':
+            violations+=1
+
+        directions = [(-1,0),(0,-1),(1,0),(0,1),(1,1),(1,-1),(-1,1),(-1,-1)] 
+
+        if(tent[0]==0):
+            if(tent[1]==0):
+                directions.remove((0,-1))
+                directions.remove((1,-1))
+            if(tent[1]==len(solution[0])):
+                directions.remove((0,1))
+                directions.remove((1,1))
+            directions.remove((-1,0))       #can't go above a tree in the top row
+            directions.remove((-1,1))
+            directions.remove((-1,-1))
+        elif(tent[1]==0):
+            if(tent[0]==0):
+                directions.remove((-1,0))
+                directions.remove((-1,1))
+            if(tent[0]==len(solution)):
+                directions.remove((1,0))
+                directions.remove((1,1))
+            directions.remove((0,-1))       #can't go left of a tree in the leftmost col
+            directions.remove((1,-1))
+            directions.remove((-1,-1))
+        elif(tent[0]==len(solution)-1):
+            if(tent[1]==0):
+                directions.remove((0,-1))
+                directions.remove((-1,-1))
+            if(tent[1]==len(solution[0])):
+                directions.remove((0,1))
+                directions.remove((-1,1))
+            directions.remove((1,0))        #can't go below a tree in the bottom row
+            directions.remove((1,1))
+            directions.remove((1,-1))
+        elif(tent[1]==len(solution[0])-1):
+            if(tent[0]==0):
+                directions.remove((-1,0))
+                directions.remove((-1,-1))
+            if(tent[0]==len(solution)):
+                directions.remove((1,0))
+                directions.remove((1,-1))
+            directions.remove((0,1))        #can't go right of a tree in the rightmost col
+            directions.remove((1,1))
+            directions.remove((-1,1))
+        adjacency = False
+        for dir in directions:
+            tentadj = (tent[0]+dir[0],tent[1]+dir[1])
+            for tent2 in tents:
+                if(tentadj[0]==tent2[0]) and tentadj[1]==tent2[1]:
+                    adjacency=True
+                    break
+            if adjacency:
+                violations+=1
+                break
+
+    violations+=len(trees)
+
+
+    
+
+
     return violations
 
 def output(inputNum, v, tents):
-    #fileName = './all_outputs/outputs/output_group'+str(inputNum)+'.txt'
-    fileName='test_output.txt'
+    fileName = './all_outputs/outputs/output_group'+str(inputNum)+'.txt'
     outFile = open(fileName, 'w')
     outFile.write(str(v)+'\n')
     outFile.write(str(len(tents))+'\n')
@@ -71,11 +154,11 @@ def output(inputNum, v, tents):
     outFile.close()
 
 def main():
-    inputNum=974
-    while inputNum<=974:
+    inputNum=1021
+    while inputNum<=1024:
         board, rowNums, colNums=setup(inputNum)
-        solution, tents=solve(board, rowNums, colNums)
-        violations=calcViolations(solution, tents, rowNums, colNums)
+        solution, trees, tents, rowNums, colNums=solve(board, rowNums, colNums)
+        violations=calcViolations(solution, trees, tents, rowNums, colNums)
         output(inputNum, violations, tents)
         inputNum+=1
 
