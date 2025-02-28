@@ -51,6 +51,38 @@ def solve(board, rowNums, colNums):
             solution[tent[0]][tent[1]]="X"
             rowNums[tent[0]]-=1
             colNums[tent[1]]-=1
+    
+    for row in range(len(solution)):
+        if rowNums[row]>0:
+            for col in range(len(solution[i])):
+                if colNums[col]>0:
+                    adj=[]
+                    if row!=0:
+                        adj.append(solution[row-1][col])
+                        if col!=0:
+                            adj.append(solution[row-1][col-1])
+                        if col!=len(colNums)-1:
+                            adj.append(solution[row-1][col+1])
+                    if row!=len(rowNums)-1:
+                        adj.append(solution[row+1][col])
+                        if col!=0:
+                            adj.append(solution[row+1][col-1])
+                        if col!=len(colNums)-1:
+                            adj.append(solution[row+1][col+1])
+                    
+                    if col!=0:
+                        adj.append(solution[row][col-1])
+                    
+                    if col!=len(colNums)-1:
+                        adj.append(solution[row][col+1])
+                    
+                    if solution[row][col]=='.' and "X" not in adj:
+                        tents.append((row,col,'X'))
+                        rowNums[row]-=1
+                        colNums[col]-=1
+                        solution[row][col]='X'
+                if rowNums[row]==0:
+                    break
 
     return solution, trees, tents, rowNums, colNums
 
@@ -145,17 +177,21 @@ def calcViolations(solution, trees, tents, rowNums, colNums):
 
 def output(inputNum, v, tents):
     fileName = './all_outputs/outputs/output_group'+str(inputNum)+'.txt'
-    outFile = open(fileName, 'w')
+    fileName2 = './all_outputs/outputs2/output_group'+str(inputNum)+'-2.txt'
+    outFile = open(fileName2, 'w')
+    inFile = open(fileName, 'r')
     outFile.write(str(v)+'\n')
     outFile.write(str(len(tents))+'\n')
     for tent in tents:
         outFile.write(str(tent[0]+1)+" "+str(tent[1]+1)+" "+tent[2]+'\n')
-    
+    print(inputNum,int(inFile.readline().strip())-v)
     outFile.close()
 
 def main():
-    inputNum=1021
+    inputNum=969
     while inputNum<=1024:
+        if inputNum==1020:
+            continue
         board, rowNums, colNums=setup(inputNum)
         solution, trees, tents, rowNums, colNums=solve(board, rowNums, colNums)
         violations=calcViolations(solution, trees, tents, rowNums, colNums)
